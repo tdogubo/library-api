@@ -15,7 +15,7 @@ public class LibraryCard {
     @Column(name = "id")
     private UUID id;
 
-    private int tier;
+    private int tier = 1;
 
     @OneToOne(mappedBy = "libraryCard", cascade = CascadeType.ALL)
     @MapsId

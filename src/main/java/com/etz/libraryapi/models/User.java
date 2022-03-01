@@ -14,7 +14,7 @@ import javax.validation.constraints.Email;
 import java.time.LocalDate;
 import java.util.UUID;
 
-@MappedSuperclass // This is to make the entity extendable, and it's fields usable.
+@MappedSuperclass // This is to make the class extendable as an entity, and it's fields usable.
 @Getter
 @Setter
 

@@ -12,13 +12,10 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Table(name = "member")
 public class Member extends User {
-    private String cardNumber;
 
-    private Boolean isActive;
+    private Boolean isActive = false;
 
-    private int numberOfBooksCheckedOut;
-
-    private int tier;
+    private int numberOfBooksCheckedOut = 0;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "librarian_id", referencedColumnName = "id")
@@ -26,7 +23,7 @@ public class Member extends User {
 
     @OneToOne
     @PrimaryKeyJoinColumn
-    @JoinColumn(name = "card_id")
+    @JoinColumn(name = "card_id", referencedColumnName = "id")
     private LibraryCard libraryCard;
 
 }

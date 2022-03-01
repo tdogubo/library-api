@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Data
 @NoArgsConstructor
-public class EditUserResponse {
+public class UserResponse {
     private UUID id;
     private String firstName;
     private String lastName;
@@ -16,6 +16,6 @@ public class EditUserResponse {
     private LocalDate dateOfBirth;
     private String address;
     private String phoneNumber;
-    private String password;
+    private boolean isActive;
 
 }

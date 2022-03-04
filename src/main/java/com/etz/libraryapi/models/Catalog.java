@@ -2,6 +2,7 @@ package com.etz.libraryapi.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -10,15 +11,16 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-public class Catalogue {
+@NoArgsConstructor
+public class Catalog {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column
-    private String category;
+    private String name;
 
-    @OneToMany(mappedBy = "catalogue")
+    @OneToMany(mappedBy = "catalog")
     @JsonIgnore
     private List<Book> books;
 }

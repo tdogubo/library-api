@@ -6,7 +6,6 @@ import com.etz.libraryapi.domains.responses.AppResponse;
 import com.etz.libraryapi.domains.responses.UserResponse;
 import com.etz.libraryapi.services.UserService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +13,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1")
-@Slf4j
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;

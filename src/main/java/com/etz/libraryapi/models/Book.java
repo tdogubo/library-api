@@ -17,7 +17,6 @@ public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
-//    private UUID id = UUID.randomUUID(); // generate uuid for unique identification.
 
     @Column
     private String isbn;
@@ -47,7 +46,7 @@ public class Book {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "catalogue_id")
-    private Catalogue catalogue;
+    private Catalog catalog;
 
     @ManyToMany(mappedBy = "books")
     private List<Author> authors;

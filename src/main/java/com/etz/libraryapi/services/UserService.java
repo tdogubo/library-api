@@ -20,8 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,17 +45,13 @@ public class UserService {
         return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.CREATED);
     }
 
-    public ResponseEntity<AppResponse<UserResponse>> loginUser(LoginUserRequest request, HttpServletResponse cookieResponse) {
+    public ResponseEntity<AppResponse<UserResponse>> loginUser(LoginUserRequest request) {
         Optional<Librarian> librarian = librarianRepo.findByEmail(request.getEmail());
         Optional<Member> member = memberRepo.findByEmail(request.getEmail());
         if (librarian.isPresent() && encoder.passwordEncoder().matches(request.getPassword(), librarian.get().getPassword())) {
             Librarian foundUser = librarian.get();
 
             UserResponse response = mapper.modelMapper().map(foundUser, UserResponse.class);
-            Cookie cookie = new Cookie("id", foundUser.getId().toString()); // send the user id as cookie
-            cookie.setHttpOnly(true);
-            cookieResponse.addCookie(cookie);
-
             return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.FOUND);
 
         } else if (member.isPresent() && encoder.passwordEncoder().matches(request.getPassword(), member.get().getPassword())) {

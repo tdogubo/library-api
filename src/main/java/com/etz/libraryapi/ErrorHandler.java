@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ControllerAdvice
-public class ValidationHandler extends ResponseEntityExceptionHandler {
+public class ErrorHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         Map<String, String> errors = new HashMap<>();
@@ -49,10 +49,18 @@ public class ValidationHandler extends ResponseEntityExceptionHandler {
 
     }
 
+    @ExceptionHandler(value = {IllegalArgumentException.class})
+    protected ResponseEntity<Object> handleNullPointerException(IllegalArgumentException ex, WebRequest request) {
+        ErrorResponse response = new ErrorResponse();
+        response.setData(ex.getMessage());
+
+        return handleExceptionInternal(ex, response, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+    }
+
     @ExceptionHandler(value = {NullPointerException.class})
     protected ResponseEntity<Object> handleNullPointerException(NullPointerException ex, WebRequest request) {
         ErrorResponse response = new ErrorResponse();
-        response.setData("Null Pointer Exception : : " + ex.getStackTrace()[0]  + ex.getStackTrace()[1] + ex.getStackTrace()[2]);
+        response.setData("Null Pointer Exception : : " + ex.getStackTrace()[0] + ex.getStackTrace()[1] + ex.getStackTrace()[2]);
 
         return handleExceptionInternal(ex, response, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
 

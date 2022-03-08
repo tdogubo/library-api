@@ -13,6 +13,15 @@ logging:
   level:
     web: DEBUG #for additional information
 
+springdoc:
+  api-docs:
+    path: /api-docs
+    title: API Documentation
+    description: API Documentation
+  swagger-ui:
+    path: /swagger-ui-custom.html
+    operationsSorter: method
+
 spring:
   mvc:
     log-request-details: true

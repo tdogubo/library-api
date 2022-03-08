@@ -7,17 +7,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class ErrorHandler extends ResponseEntityExceptionHandler {
     @Override
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
@@ -32,15 +34,17 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(value = {DataIntegrityViolationException.class})
+    @ResponseStatus(HttpStatus.CONFLICT)
     protected ResponseEntity<Object> handleDataIntegrityViolation(RuntimeException ex, WebRequest request) {
         ErrorResponse response = new ErrorResponse();
-        response.setData(ex.getMessage() + " : : EMAIL ALREADY EXISTS!!!!");
+        response.setData("CONFLICT :: CHECK INPUT!");
 
         return handleExceptionInternal(ex, response, new HttpHeaders(), HttpStatus.CONFLICT, request);
 
     }
 
     @ExceptionHandler(value = {IllegalStateException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     protected ResponseEntity<Object> handleIllegalState(RuntimeException ex, WebRequest request) {
         ErrorResponse response = new ErrorResponse();
         response.setData(ex.getMessage());
@@ -50,7 +54,8 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(value = {IllegalArgumentException.class})
-    protected ResponseEntity<Object> handleNullPointerException(IllegalArgumentException ex, WebRequest request) {
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    protected ResponseEntity<Object> handleIllegalArgument(IllegalArgumentException ex, WebRequest request) {
         ErrorResponse response = new ErrorResponse();
         response.setData(ex.getMessage());
 
@@ -58,7 +63,8 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(value = {NullPointerException.class})
-    protected ResponseEntity<Object> handleNullPointerException(NullPointerException ex, WebRequest request) {
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    protected ResponseEntity<Object> handleNullPointer(NullPointerException ex, WebRequest request) {
         ErrorResponse response = new ErrorResponse();
         response.setData("Null Pointer Exception : : " + ex.getStackTrace()[0] + ex.getStackTrace()[1] + ex.getStackTrace()[2]);
 

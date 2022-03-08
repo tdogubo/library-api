@@ -22,7 +22,6 @@ public class Member extends User {
     private Librarian librarian;
 
     @OneToOne
-    @PrimaryKeyJoinColumn
     @JoinColumn(name = "card_id", referencedColumnName = "id")
     private LibraryCard libraryCard;
 

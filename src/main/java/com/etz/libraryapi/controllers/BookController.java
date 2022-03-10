@@ -1,7 +1,7 @@
 package com.etz.libraryapi.controllers;
 
 import com.etz.libraryapi.domains.requests.AddBookRequest;
-import com.etz.libraryapi.domains.responses.AddBookResponse;
+import com.etz.libraryapi.domains.responses.BookResponse;
 import com.etz.libraryapi.domains.responses.AppResponse;
 import com.etz.libraryapi.services.BookService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class BookController {
     private final BookService bookService;
 
     @PostMapping
-    public ResponseEntity<AppResponse<AddBookResponse>> newBook( @Valid @RequestBody AddBookRequest request){
+    public ResponseEntity<AppResponse<BookResponse>> newBook(@Valid @RequestBody AddBookRequest request){
         return bookService.newBook(request);
     }
 }

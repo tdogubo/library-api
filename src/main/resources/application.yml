@@ -6,9 +6,7 @@ server:
   port: 3000
   error:
     include-message: always
-##############################################
-#           Database Configuration           #
-##############################################
+
 logging:
   level:
     web: DEBUG #for additional information
@@ -22,21 +20,10 @@ springdoc:
     path: /swagger-ui-custom.html
     operationsSorter: method
 
-spring:
-  mvc:
-    log-request-details: true
-  datasource:
-    url: jdbc:mysql://localhost:3306/library_db
-    username: root
-    password: q1w2
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  jpa:
-    open-in-view: true
-    properties:
-      hibernate:
-        show-sql: true
-        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+##############################################
+#           Database Configuration           #
+##############################################
 
-    # Hibernate ddl auto (create, create-drop, validate, update)
-    hibernate:
-      ddl-auto: create
+spring:
+  profiles:
+    active: dev

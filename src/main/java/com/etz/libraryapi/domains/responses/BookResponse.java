@@ -1,22 +1,25 @@
 package com.etz.libraryapi.domains.responses;
 
-import com.etz.libraryapi.models.Author;
-import com.etz.libraryapi.models.Catalog;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.util.List;
 
+@Data
+@NoArgsConstructor
 public class BookResponse {
     private Long id;
+    private String callNumber;
     private String isbn;
     private String title;
-    private String author;
     private String publisher;
     private String genre;
-    private LocalDate publicationDate;
+    private String publishYear;
     private String description;
     private String language;
     private int pages;
-    private Catalog catalog;
-    private List<Author> authors;
+    private List<String> authors;
+    private int copies;
+    private String catalog;
+
 }

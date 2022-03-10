@@ -1,8 +1,7 @@
 package com.etz.libraryapi.repositories;
 
-import com.etz.libraryapi.models.Catalog;
+import com.etz.libraryapi.models.Librarian;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -12,21 +11,20 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Slf4j
 @RequiredArgsConstructor
-class CatalogueRepoTest {
+class LibrarianRepoTest {
     @Autowired
-    private final CatalogueRepo repo;
+    private final LibrarianRepo repo;
 
     @Test
-    void testFindByName() {
+    void testFindByEmail() {
         //given
-        String name = "test";
+        String email = "test@email.com";
 
         // when
-        Optional<Catalog> catalog = repo.findByName(name);
+        Optional<Librarian> librarian = repo.findByEmail(email);
 
         //then
-        assertThat(catalog).isEmpty();
+        assertThat(librarian).isEmpty();
     }
 }

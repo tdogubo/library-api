@@ -34,8 +34,8 @@ public class CatalogController {
         return catalogService.getCatalogs();
     }
 
-    @DeleteMapping
-    public ResponseEntity<AppResponse<String>> deleteCatalog(@RequestBody CatalogRequest name) {
-        return catalogService.deleteCatalog(name);
+    @DeleteMapping("{id}")
+    public ResponseEntity<AppResponse<?>> deleteCatalog(@PathVariable("id") Long id) {
+        return catalogService.deleteCatalog(id);
     }
 }

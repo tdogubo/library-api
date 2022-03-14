@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -67,6 +68,16 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleNullPointer(NullPointerException ex, WebRequest request) {
         ErrorResponse response = new ErrorResponse();
         response.setData("Null Pointer Exception : : " + ex.getStackTrace()[0] + ex.getStackTrace()[1] + ex.getStackTrace()[2]);
+
+        return handleExceptionInternal(ex, response, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+
+    }
+
+    @ExceptionHandler(value = {ArrayIndexOutOfBoundsException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    protected ResponseEntity<Object> handleArrayIndexOutOfBounds(ArrayIndexOutOfBoundsException ex, WebRequest request) {
+        ErrorResponse response = new ErrorResponse();
+        response.setData("Message:: "+ ex.getCause());
 
         return handleExceptionInternal(ex, response, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
 

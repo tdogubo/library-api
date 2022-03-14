@@ -1,11 +1,14 @@
 package com.etz.libraryapi.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -45,11 +48,26 @@ public class Book {
     @Column
     private String callNumber;
 
-    @ManyToMany(mappedBy = "books")
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.DETACH})
+    @JoinTable(name = "author_book",
+            joinColumns = @JoinColumn(name = "author_id"),
+            inverseJoinColumns = @JoinColumn(name = "book_id"))
+    @JsonIgnore
     private Set<Author> authors = new HashSet<>();
+
+    private ArrayList<String> authorList = new ArrayList<>();
 
     public void addAuthor(Author author) {
         authors.add(author);
     }
+
+    public ArrayList<String> getBookAuthors() {
+        for (Author author: authors) {
+            String authorFullName = author.getFirstName()+ " " + author.getLastName();
+            authorList.add(authorFullName);
+        }
+        return authorList;
+    }
+
 
 }

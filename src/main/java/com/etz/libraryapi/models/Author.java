@@ -30,11 +30,7 @@ public class Author {
     @Column
     private String lastName;
 
-    @ManyToMany
-    @JoinTable(name = "author_book",
-            joinColumns = @JoinColumn(name = "author_id"),
-            inverseJoinColumns = @JoinColumn(name = "book_id"))
-    @JsonIgnore
+    @ManyToMany(mappedBy = "authors")
     private Set<Book> books = new HashSet<>();
 
 }

@@ -24,19 +24,18 @@ public class CatalogService {
 
     public ResponseEntity<AppResponse<List<Catalog>>> getCatalogs() {
         List<Catalog> isCatalog = catalogRepo.findAll();
-        log.info("Catalogs: {}", isCatalog);
 //        List<CatalogResponse> catalogResponses = isCatalog.stream().map(catalog -> mapper.modelMapper().map(catalog, CatalogResponse.class)).collect(Collectors.toList()); // getting null pointer exception
         if (isCatalog.size() != 0) {
             return new ResponseEntity<>(new AppResponse<>(true, isCatalog), HttpStatus.FOUND);
         }
-        throw new IllegalStateException("Catalog is empty");
+        throw new IllegalStateException("Catalog list is empty");
     }
 
     public ResponseEntity<AppResponse<String>> createNewCatalog(CreateNewCatalogRequest catalogs) {
         try {
             for (String category : catalogs.getCatalogNames()) {
                 Catalog catalog = new Catalog();
-                catalog.setName(category);
+                catalog.setName(category.toUpperCase());
                 catalogRepo.save(catalog);
             }
             return new ResponseEntity<>(new AppResponse<>(true, "Successful"), HttpStatus.CREATED);
@@ -48,25 +47,16 @@ public class CatalogService {
     }
 
     public ResponseEntity<AppResponse<String>> editCatalog(Long id, CatalogRequest request) {
-        Optional<Catalog> isCatalog = catalogRepo.findById(id);
-        if (isCatalog.isPresent()) {
-            Catalog catalog = isCatalog.get();
-            catalog.setName(request.getName());
+        Catalog catalog = catalogRepo.findById(id).orElseThrow(()->new IllegalArgumentException("Catalog does not exist"));
+            catalog.setName(request.getName().toUpperCase());
             catalogRepo.save(catalog);
             return new ResponseEntity<>(new AppResponse<>(true, "Successful"), HttpStatus.OK);
-        }
-        throw new IllegalArgumentException("Catalog name does not exist");
     }
 
-    public ResponseEntity<AppResponse<String>> deleteCatalog(CatalogRequest request) {
-        Optional<Catalog> isCatalog = catalogRepo.findByName(request.getName());
-        log.info("Optional isCatalog: {}", isCatalog);
-        if (isCatalog.isPresent()) {
-            log.info("Catalog information::: {}", isCatalog.get());
-            Catalog catalog = isCatalog.get();
+    public ResponseEntity<AppResponse<?>> deleteCatalog(Long id) {
+        Catalog catalog = catalogRepo.findById(id).orElseThrow(()-> new IllegalArgumentException("Catalog does not exist"));
+        log.info("Optional isCatalog: {}", catalog);
             catalogRepo.delete(catalog);
-            return new ResponseEntity<>(new AppResponse<>(true, "Successful"), HttpStatus.FOUND);
+            return new ResponseEntity<>(new AppResponse<>(true, ""), HttpStatus.NO_CONTENT);
         }
-        throw new IllegalArgumentException("Catalog name does not exist");
-    }
 }

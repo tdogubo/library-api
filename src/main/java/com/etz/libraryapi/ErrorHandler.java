@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,7 +50,6 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
         response.setData(ex.getMessage());
 
         return handleExceptionInternal(ex, response, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
-
     }
 
     @ExceptionHandler(value = {IllegalArgumentException.class})
@@ -77,9 +75,8 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     protected ResponseEntity<Object> handleArrayIndexOutOfBounds(ArrayIndexOutOfBoundsException ex, WebRequest request) {
         ErrorResponse response = new ErrorResponse();
-        response.setData("Message:: "+ ex.getCause());
+        response.setData("Message:: " + ex.getCause());
 
         return handleExceptionInternal(ex, response, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
-
     }
 }

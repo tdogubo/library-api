@@ -4,17 +4,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.UUID;
 
 @Data
 @NoArgsConstructor
-public class ChangeUserStatusRequest {
+public class BorrowBookRequest {
     @NotNull(message = "Required field")
-    private UUID librarianId;
-
+    private UUID memberId;
     @NotNull(message = "Required field")
-    private Boolean activate;
-
+    private String title;
     @NotNull(message = "Required field")
+    private ArrayList<String> authors;
     private int tier;
 }

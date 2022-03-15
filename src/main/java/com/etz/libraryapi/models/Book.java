@@ -8,7 +8,6 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -62,8 +61,8 @@ public class Book {
     }
 
     public ArrayList<String> getBookAuthors() {
-        for (Author author: authors) {
-            String authorFullName = author.getFirstName()+ " " + author.getLastName();
+        for (Author author : authors) {
+            String authorFullName = author.getFirstName() + " " + author.getLastName();
             authorList.add(authorFullName);
         }
         return authorList;

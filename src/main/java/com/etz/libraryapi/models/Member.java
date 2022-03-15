@@ -25,4 +25,8 @@ public class Member extends User {
     @JoinColumn(name = "card_id", referencedColumnName = "id")
     private LibraryCard libraryCard;
 
+    @OneToOne
+    @JoinColumn(name = "history_id", referencedColumnName = "id")
+    private BorrowHistory history;
+
 }

@@ -7,10 +7,13 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 public class AddBookRequest {
+    @NotNull(message = "Required field")
+    private UUID librarianId;
     @NotBlank(message = "Required field")
     private String isbn;
     @NotBlank(message = "Required field")

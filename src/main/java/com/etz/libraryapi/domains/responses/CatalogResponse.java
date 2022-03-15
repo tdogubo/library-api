@@ -1,13 +1,16 @@
 package com.etz.libraryapi.domains.responses;
 
-import com.etz.libraryapi.models.Book;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.ArrayList;
 
+@Data
+@NoArgsConstructor
 public class CatalogResponse {
     private Long id;
 
     private String name;
 
-    private List<Book> books;
+    private ArrayList<String> books;
 }

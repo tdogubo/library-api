@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -23,4 +24,14 @@ public class Catalog {
     @OneToMany(mappedBy = "catalog")
     @JsonIgnore
     private List<Book> books;
+
+    private ArrayList<String> bookList = new ArrayList<>();
+
+    public ArrayList<String> getCatalogBooks(){
+        for (Book book: books) {
+            String title = book.getTitle();
+            bookList.add(title);
+        }
+        return bookList;
+    }
 }

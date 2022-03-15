@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.UUID;
 
 @RestController
@@ -23,8 +24,8 @@ public class UserController {
     }
 
 
-    @PutMapping("/admin/users/{id}")
-    public ResponseEntity<AppResponse<UserResponse>> changeUserStatus(@PathVariable("id") UUID id, @RequestBody ChangeUserStatusRequest request) {
+    @PatchMapping("/admin/users/{id}")
+    public ResponseEntity<AppResponse<UserResponse>> changeUserStatus(@PathVariable("id") UUID id, @Valid @RequestBody ChangeUserStatusRequest request) {
         return userService.changeUserStatus(id, request);
     }
 }

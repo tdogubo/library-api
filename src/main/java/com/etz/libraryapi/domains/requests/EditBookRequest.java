@@ -3,14 +3,16 @@ package com.etz.libraryapi.domains.requests;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 public class EditBookRequest {
+    @NotNull(message = "Required field")
+    private UUID librarianId;
     @NotNull(message = "Title can not be null")
     @NotEmpty(message = "Title can not be empty")
     private String title;

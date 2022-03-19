@@ -1,10 +1,7 @@
 package com.etz.libraryapi.services;
 
 import com.etz.libraryapi.config.Mapper;
-import com.etz.libraryapi.domains.requests.BorrowBookRequest;
-import com.etz.libraryapi.domains.requests.GenericDeleteRequest;
-import com.etz.libraryapi.domains.requests.AddBookRequest;
-import com.etz.libraryapi.domains.requests.EditBookRequest;
+import com.etz.libraryapi.domains.requests.*;
 import com.etz.libraryapi.domains.responses.AppResponse;
 import com.etz.libraryapi.domains.responses.BookResponse;
 import com.etz.libraryapi.domains.responses.BorrowBookResponse;
@@ -16,10 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -42,18 +36,21 @@ public class BookService {
 
     public ResponseEntity<AppResponse<List<BookResponse>>> getAllBooks() {
         List<Book> books = bookRepo.findAll();
-        ArrayList<BookResponse> response = new ArrayList<>();
-        for (Book book : books) {
-            BookResponse bookResponse = mapper.modelMapper().map(book, BookResponse.class);
-            bookResponse.setAuthors(book.getBookAuthors());
-            bookResponse.setCatalog(book.getCatalog().getName());
-            response.add(bookResponse);
+        if(books.size() !=0) {
+            ArrayList<BookResponse> response = new ArrayList<>();
+            for (Book book : books) {
+                BookResponse bookResponse = mapper.modelMapper().map(book, BookResponse.class);
+                bookResponse.setAuthors(book.getBookAuthors());
+                bookResponse.setCatalog(book.getCatalog().getName());
+                response.add(bookResponse);
+            }
+            return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.OK);
         }
-        return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.OK);
+        return new ResponseEntity<>(new AppResponse<>(true,"No books yet"), HttpStatus.OK);
     }
 
-    public ResponseEntity<AppResponse<BookResponse>> newBook(AddBookRequest request) {
-        Optional<Librarian> librarian = librarianRepo.findById(request.getLibrarianId());
+    public ResponseEntity<AppResponse<BookResponse>> newBook(UUID librarianId, AddBookRequest request) {
+        Optional<Librarian> librarian = librarianRepo.findById(librarianId);
         if (librarian.isPresent()) {
             Catalog catalog = catalogueRepo.findByName(request.getCatalog().toUpperCase()).orElseThrow(() -> new IllegalStateException("Catalog does not exist!!"));
 
@@ -92,15 +89,14 @@ public class BookService {
             response.setAuthors(newBook.getBookAuthors());
             return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.CREATED);
         }
-        throw new IllegalStateException("Unauthorized");
-
+        return new ResponseEntity<>(new AppResponse<>(false, "Unauthorized"), HttpStatus.FORBIDDEN);
 
     }
 
-    public ResponseEntity<AppResponse<BookResponse>> editBookDetails(Long id, EditBookRequest request) {
-        Optional<Librarian> librarian = librarianRepo.findById(request.getLibrarianId());
+    public ResponseEntity<AppResponse<BookResponse>> editBookDetails(UUID librarianId, Long bookId, EditBookRequest request) {
+        Optional<Librarian> librarian = librarianRepo.findById(librarianId);
         if (librarian.isPresent()) {
-            Book book = bookRepo.findById(id).orElseThrow(() -> new IllegalStateException("Book does not exist"));
+            Book book = bookRepo.findById(bookId).orElseThrow(() -> new IllegalStateException("Book does not exist"));
             book.setTitle(request.getTitle());
             book.setDescription(request.getDescription());
             book.setCopies(book.getCopies() + request.getCopies());
@@ -141,28 +137,45 @@ public class BookService {
             response.setAuthors(book.getBookAuthors());
             return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.ACCEPTED);
         }
-        throw new IllegalStateException("Unauthorized");
+        return new ResponseEntity<>(new AppResponse<>(false, "Unauthorized"), HttpStatus.FORBIDDEN);
     }
 
-    public ResponseEntity<AppResponse<String>> deleteBook(Long id, GenericDeleteRequest request) {
-        Optional<Librarian> librarian = librarianRepo.findById(request.getLibrarianId());
+    public ResponseEntity<AppResponse<String>> deleteBook(UUID librarianId, Long bookId) {
+        Optional<Librarian> librarian = librarianRepo.findById(librarianId);
         if (librarian.isPresent()) {
-            Book book = bookRepo.findById(id).orElseThrow(() -> new IllegalStateException("Book does not exist"));
+            Book book = bookRepo.findById(bookId).orElseThrow(() -> new IllegalStateException("Book does not exist"));
             bookRepo.delete(book);
             return new ResponseEntity<>(new AppResponse<>(true, ""), HttpStatus.NO_CONTENT);
         }
-        throw new IllegalStateException("Unauthorized");
+        return new ResponseEntity<>(new AppResponse<>(false, "Unauthorized"), HttpStatus.FORBIDDEN);
     }
 
-    public ResponseEntity<AppResponse<BorrowBookResponse>> borrowBook(UUID id, BorrowBookRequest request) {
-        Member member = memberRepo.findById(id).orElseThrow(()-> new IllegalArgumentException("SignUp to borrow books."));
-        if(member.getIsActive()){
-            BorrowHistory newBorrow = new BorrowHistory();
-            newBorrow.setDueDate(newBorrow.getCreationDate().plusDays(7));
-            if(member.getLibraryCard().getTier()>1){
-                // check the tier of the member if it is less than 1 and limit the number of books the person can borrow
-            }
-        } throw new IllegalStateException("Activate your account");
+    public ResponseEntity<AppResponse<Book>> borrowBook(UUID id, BookRequest request) {
+            String firstName = request.getAuthors().get(0).split(" ")[0];
+            String lastName = request.getAuthors().get(0).split(" ")[1];
+            Author foundAuthor = authorRepo.findByFirstNameAndLastName(firstName, lastName).orElseThrow(() -> new IllegalStateException("Author does not exist"));
+
+        Book book = bookRepo.findByAuthors(foundAuthor).orElseThrow(()-> new IllegalStateException("empty"));
+        return new ResponseEntity<>(new AppResponse<>(true, book), HttpStatus.FOUND);
+
+
+
+
+//        Member member = memberRepo.findById(id).orElseThrow(() -> new IllegalArgumentException("SignUp to borrow books."));
+//        if (member.getIsActive()) {
+//            if (member.getLibraryCard().getFine() != 0) {
+//                return new ResponseEntity<>(new AppResponse<>(false, "Please clear your fine"), HttpStatus.OK);
+//            } else {
+//                BorrowHistory newBorrow = new BorrowHistory();
+//                newBorrow.setDueDate(newBorrow.getCreationDate().plusDays(7));
+//                if (member.getLibraryCard().getTier() > 1) {
+//                    for (BookRequest requestList : request.getBooks()) {
+//                        Book books = bookRepo.findByTitle(requestList.getTitle()).orElseThrow(()-> new IllegalStateException("Not found"));
+//                    }
+//                    // check the tier of the member if it is less than 1 and limit the number of books the person can borrow
+//                }
+//            }
+//        } throw new IllegalStateException("Activate your account");
 
     }
 }

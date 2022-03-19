@@ -4,11 +4,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
-import java.util.UUID;
+import java.util.ArrayList;
 
 @Data
 @NoArgsConstructor
-public class GenericDeleteRequest {
+public class BookRequestList {
     @NotNull(message = "Required field")
-    private UUID librarianId;
+    private int tier;
+    private ArrayList<BookRequest> books;
 }

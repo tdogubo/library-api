@@ -36,13 +36,21 @@ public class UserService {
 
 
     public ResponseEntity<AppResponse<UserResponse>> createUser(CreateUserRequest request) {
-        User user = request.getUserType().equals("librarian") ? new Librarian() : new Member();
-        request.setPassword(encoder.passwordEncoder().encode(request.getPassword()));
-        mapper.modelMapper().map(request, user);
-        userRepo.save(user);
-        UserResponse response = mapper.modelMapper().map(user, UserResponse.class);
+        Optional<Librarian> existsLibrarian = librarianRepo.findByEmail(request.getEmail());
+        Optional<Member> existsMember = memberRepo.findByEmail(request.getEmail());
+        if (existsLibrarian.isPresent() || existsMember.isPresent()) {
+            return new ResponseEntity<>(new AppResponse<>(false, "Email already exist"), HttpStatus.CONFLICT);
 
-        return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.CREATED);
+        } else {
+            User user = request.getUserType().equals("librarian") ? new Librarian() : new Member();
+            request.setPassword(encoder.passwordEncoder().encode(request.getPassword()));
+            mapper.modelMapper().map(request, user);
+            userRepo.save(user);
+            UserResponse response = mapper.modelMapper().map(user, UserResponse.class);
+
+            return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.CREATED);
+        }
+
     }
 
     public ResponseEntity<AppResponse<UserResponse>> loginUser(LoginUserRequest request) {
@@ -60,7 +68,8 @@ public class UserService {
             return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.FOUND);
 
         }
-        throw new IllegalStateException("User not found");
+        return new ResponseEntity<>(new AppResponse<>(false, "User not found"), HttpStatus.NOT_FOUND);
+
 
     }
 
@@ -81,7 +90,8 @@ public class UserService {
             UserResponse response = mapper.modelMapper().map(foundUser, UserResponse.class);
             return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.OK);
         }
-        throw new IllegalStateException("User not found");
+        return new ResponseEntity<>(new AppResponse<>(false, "User not found"), HttpStatus.NOT_FOUND);
+
 
     }
 
@@ -99,12 +109,11 @@ public class UserService {
                 UserResponse response = mapper.modelMapper().map(foundUser, UserResponse.class);
                 return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.OK);
             }
-            throw new IllegalStateException("Unauthorized");
+            return new ResponseEntity<>(new AppResponse<>(false, "User not found"), HttpStatus.NOT_FOUND);
+
         }
-        throw new IllegalStateException("User not found");
+        return new ResponseEntity<>(new AppResponse<>(false, "Unauthorized"), HttpStatus.FORBIDDEN);
+
     }
 
 }
-
-
-

@@ -3,7 +3,6 @@ package com.etz.libraryapi.services;
 import com.etz.libraryapi.config.Mapper;
 import com.etz.libraryapi.domains.requests.CatalogRequest;
 import com.etz.libraryapi.domains.requests.CreateNewCatalogRequest;
-import com.etz.libraryapi.domains.requests.GenericDeleteRequest;
 import com.etz.libraryapi.domains.responses.AppResponse;
 import com.etz.libraryapi.domains.responses.CatalogResponse;
 import com.etz.libraryapi.models.Catalog;
@@ -19,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -39,11 +39,11 @@ public class CatalogService {
             }
             return new ResponseEntity<>(new AppResponse<>(true, catalogResponses), HttpStatus.FOUND);
         }
-        throw new IllegalStateException("Catalog list is empty");
+        return new ResponseEntity<>(new AppResponse<>(true, "Catalog list is empty"), HttpStatus.NOT_FOUND);
     }
 
-    public ResponseEntity<AppResponse<String>> createNewCatalog(CreateNewCatalogRequest request) {
-        Optional<Librarian> librarian = librarianRepo.findById(request.getLibrarianId());
+    public ResponseEntity<AppResponse<String>> createNewCatalog(UUID librarianId,CreateNewCatalogRequest request) {
+        Optional<Librarian> librarian = librarianRepo.findById(librarianId);
         if (librarian.isPresent()) {
             try {
                 for (String category : request.getCatalogNames()) {
@@ -57,30 +57,30 @@ public class CatalogService {
                 throw new RuntimeException(e);
             }
         }
-        throw new IllegalStateException("Unauthorized");
+        return new ResponseEntity<>(new AppResponse<>(false, "Unauthorized"), HttpStatus.FORBIDDEN);
+
 
     }
 
-    public ResponseEntity<AppResponse<String>> editCatalog(Long id, CatalogRequest request) {
-        Optional<Librarian> librarian = librarianRepo.findById(request.getLibrarianId());
+    public ResponseEntity<AppResponse<String>> editCatalog(UUID librarianId,Long catalogId, CatalogRequest request) {
+        Optional<Librarian> librarian = librarianRepo.findById(librarianId);
         if (librarian.isPresent()) {
-            Catalog catalog = catalogRepo.findById(id).orElseThrow(() -> new IllegalArgumentException("Catalog does not exist"));
+            Catalog catalog = catalogRepo.findById(catalogId).orElseThrow(() -> new IllegalArgumentException("Catalog does not exist"));
             catalog.setName(request.getName().toUpperCase());
             catalogRepo.save(catalog);
             return new ResponseEntity<>(new AppResponse<>(true, "Successful"), HttpStatus.OK);
         }
-        throw new IllegalStateException("Unauthorized");
-
+        return new ResponseEntity<>(new AppResponse<>(false, "Unauthorized"), HttpStatus.FORBIDDEN);
     }
 
-    public ResponseEntity<AppResponse<?>> deleteCatalog(Long id, GenericDeleteRequest request) {
-        Optional<Librarian> librarian = librarianRepo.findById(request.getLibrarianId());
+    public ResponseEntity<AppResponse<String>> deleteCatalog(UUID librarianId, Long catalogId) {
+        Optional<Librarian> librarian = librarianRepo.findById(librarianId);
         if (librarian.isPresent()) {
-            Catalog catalog = catalogRepo.findById(id).orElseThrow(() -> new IllegalArgumentException("Catalog does not exist"));
+            Catalog catalog = catalogRepo.findById(catalogId).orElseThrow(() -> new IllegalArgumentException("Catalog does not exist"));
             log.info("Optional isCatalog: {}", catalog);
             catalogRepo.delete(catalog);
             return new ResponseEntity<>(new AppResponse<>(true, ""), HttpStatus.NO_CONTENT);
         }
-        throw new IllegalStateException("Unauthorized");
+        return new ResponseEntity<>(new AppResponse<>(false, "Unauthorized"), HttpStatus.FORBIDDEN);
     }
 }

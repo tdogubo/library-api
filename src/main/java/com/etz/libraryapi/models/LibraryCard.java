@@ -6,6 +6,7 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -20,6 +21,12 @@ public class LibraryCard {
     private UUID id;
 
     private int tier = 1;
+
+    private int numberOfBooksCheckedOut = 0;
+
+    private LocalDate issuedAt = LocalDate.now();
+
+    private double fine = 0.00;
 
     @OneToOne(mappedBy = "libraryCard", cascade = CascadeType.ALL)
     @JoinColumn

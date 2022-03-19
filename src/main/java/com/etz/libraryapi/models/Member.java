@@ -15,8 +15,6 @@ public class Member extends User {
 
     private Boolean isActive = false;
 
-    private int numberOfBooksCheckedOut = 0;
-
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "librarian_id", referencedColumnName = "id")
     private Librarian librarian;

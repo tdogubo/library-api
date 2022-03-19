@@ -41,6 +41,7 @@ public class Book {
     private int pages;
     @Column
     private int copies;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "catalogue_id")
     private Catalog catalog;

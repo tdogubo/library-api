@@ -3,6 +3,8 @@ package com.etz.libraryapi.domains.responses;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Data
@@ -18,7 +20,7 @@ public class BookResponse {
     private String description;
     private String language;
     private int pages;
-    private List<String> authors;
+    private Collection<String> authorList;
     private int copies;
     private String catalog;
 

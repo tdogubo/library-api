@@ -28,11 +28,11 @@ public class BorrowHistory {
 
     private LocalDate returnDate;
 
-    @OneToOne
-    @JoinColumn(name = "card_id", referencedColumnName = "id")
+    @OneToOne(mappedBy = "history", cascade = CascadeType.ALL)
+    @JoinColumn
     private LibraryCard libraryCard;
 
     @OneToOne(mappedBy = "history", cascade = CascadeType.ALL)
     @JoinColumn
-    private Member member;
+    private Book book;
 }

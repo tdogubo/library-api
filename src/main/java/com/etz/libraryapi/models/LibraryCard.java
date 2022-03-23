@@ -22,6 +22,8 @@ public class LibraryCard {
 
     private int tier = 1;
 
+    private int maxNumberOfBooks = 3;
+
     private int numberOfBooksCheckedOut = 0;
 
     private LocalDate issuedAt = LocalDate.now();
@@ -31,4 +33,8 @@ public class LibraryCard {
     @OneToOne(mappedBy = "libraryCard", cascade = CascadeType.ALL)
     @JoinColumn
     private Member member;
+
+    @OneToOne
+    @JoinColumn(name = "history_id", referencedColumnName = "id")
+    private BorrowHistory history;
 }

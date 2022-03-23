@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -23,10 +24,6 @@ public class Book {
     private String isbn;
     @Column
     private String title;
-    @Column
-    private Boolean checkInStatus;
-    @Column
-    private Boolean checkOutStatus;
     @Column
     private String publisher;
     @Column
@@ -47,6 +44,10 @@ public class Book {
     private Catalog catalog;
     @Column
     private String callNumber;
+
+    @OneToOne
+    @JoinColumn(name = "history_id", referencedColumnName = "id")
+    private BorrowHistory history;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.DETACH})
     @JoinTable(name = "author_book",

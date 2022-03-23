@@ -1,10 +1,11 @@
 package com.etz.libraryapi.services;
 
 import com.etz.libraryapi.config.Mapper;
-import com.etz.libraryapi.domains.requests.*;
+import com.etz.libraryapi.domains.requests.AddBookRequest;
+import com.etz.libraryapi.domains.requests.BookRequest;
+import com.etz.libraryapi.domains.requests.EditBookRequest;
 import com.etz.libraryapi.domains.responses.AppResponse;
 import com.etz.libraryapi.domains.responses.BookResponse;
-import com.etz.libraryapi.domains.responses.BorrowBookResponse;
 import com.etz.libraryapi.models.*;
 import com.etz.libraryapi.repositories.*;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +28,7 @@ public class BookService {
     private final AuthorRepo authorRepo;
     private final MemberRepo memberRepo;
     private final CatalogueRepo catalogueRepo;
+    private final LibraryCardRepo libraryCardRepo;
     private final LibrarianRepo librarianRepo;
     private final BorrowHistoryRepo borrowHistoryRepo;
     private final Mapper mapper;
@@ -36,17 +42,17 @@ public class BookService {
 
     public ResponseEntity<AppResponse<List<BookResponse>>> getAllBooks() {
         List<Book> books = bookRepo.findAll();
-        if(books.size() !=0) {
+        if (books.size() != 0) {
             ArrayList<BookResponse> response = new ArrayList<>();
             for (Book book : books) {
                 BookResponse bookResponse = mapper.modelMapper().map(book, BookResponse.class);
-                bookResponse.setAuthors(book.getBookAuthors());
+                bookResponse.setAuthorList(book.getBookAuthors());
                 bookResponse.setCatalog(book.getCatalog().getName());
                 response.add(bookResponse);
             }
             return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.OK);
         }
-        return new ResponseEntity<>(new AppResponse<>(true,"No books yet"), HttpStatus.OK);
+        return new ResponseEntity<>(new AppResponse<>(true, "No books yet"), HttpStatus.OK);
     }
 
     public ResponseEntity<AppResponse<BookResponse>> newBook(UUID librarianId, AddBookRequest request) {
@@ -86,7 +92,7 @@ public class BookService {
             bookRepo.save(newBook);
             BookResponse response = mapper.modelMapper().map(newBook, BookResponse.class);
             response.setCatalog(newBook.getCatalog().getName());
-            response.setAuthors(newBook.getBookAuthors());
+            response.setAuthorList(newBook.getBookAuthors());
             return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.CREATED);
         }
         return new ResponseEntity<>(new AppResponse<>(false, "Unauthorized"), HttpStatus.FORBIDDEN);
@@ -134,11 +140,27 @@ public class BookService {
             bookRepo.save(book);
             BookResponse response = mapper.modelMapper().map(book, BookResponse.class);
             response.setCatalog(book.getCatalog().getName());
-            response.setAuthors(book.getBookAuthors());
+            response.setAuthorList(book.getBookAuthors());
             return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.ACCEPTED);
         }
         return new ResponseEntity<>(new AppResponse<>(false, "Unauthorized"), HttpStatus.FORBIDDEN);
     }
+
+    public ResponseEntity<AppResponse<BookResponse>> searchBook(BookRequest request) {
+        Optional<Book> isBook = bookRepo.findByTitleAndAuthorFirstNameAndLastName(request.getTitle(), request.getFirstName(), request.getLastName());
+        log.info("{}", isBook);
+        if (isBook.isPresent()) {
+            Book book = isBook.get();
+            log.info("{}", book.getAuthors());
+            BookResponse response = mapper.modelMapper().map(book, BookResponse.class);
+            response.setCatalog(book.getCatalog().getName());
+            response.setAuthorList(book.getBookAuthors());
+            return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.ACCEPTED);
+        }
+        return new ResponseEntity<>(new AppResponse<>(true, "Not found"), HttpStatus.NOT_FOUND);
+
+    }
+
 
     public ResponseEntity<AppResponse<String>> deleteBook(UUID librarianId, Long bookId) {
         Optional<Librarian> librarian = librarianRepo.findById(librarianId);
@@ -150,32 +172,53 @@ public class BookService {
         return new ResponseEntity<>(new AppResponse<>(false, "Unauthorized"), HttpStatus.FORBIDDEN);
     }
 
-    public ResponseEntity<AppResponse<Book>> borrowBook(UUID id, BookRequest request) {
-            String firstName = request.getAuthors().get(0).split(" ")[0];
-            String lastName = request.getAuthors().get(0).split(" ")[1];
-            Author foundAuthor = authorRepo.findByFirstNameAndLastName(firstName, lastName).orElseThrow(() -> new IllegalStateException("Author does not exist"));
+    public ResponseEntity<AppResponse<Book>> borrowBook(Long id, UUID memberId) {
+        Member member = memberRepo.findById(memberId).orElseThrow(() -> new IllegalArgumentException("SignUp to borrow books."));
+        if (member.getIsActive()) {
+            LibraryCard card = member.getLibraryCard();
+            if (card.getFine() != 0) {
+                return new ResponseEntity<>(new AppResponse<>(false, "Please clear your fine"), HttpStatus.OK);
+            } else {
+                if (card.getMaxNumberOfBooks() >= card.getNumberOfBooksCheckedOut()) {
+                    Book book = bookRepo.findById(id).orElseThrow(() -> new IllegalStateException("Not found"));
+                    if (book.getCopies() != 0) {
+                        BorrowHistory newBorrow = new BorrowHistory();
+                        newBorrow.setDueDate(newBorrow.getCreationDate().plusDays(7));
+                        newBorrow.setLibraryCard(card);
+                        newBorrow.setBook(book);
+                        card.setNumberOfBooksCheckedOut(card.getNumberOfBooksCheckedOut() + 1);
+                        book.setCopies(book.getCopies() - 1);
 
-        Book book = bookRepo.findByAuthors(foundAuthor).orElseThrow(()-> new IllegalStateException("empty"));
-        return new ResponseEntity<>(new AppResponse<>(true, book), HttpStatus.FOUND);
+                        borrowHistoryRepo.save(newBorrow);
+                        libraryCardRepo.save(card);
+                        bookRepo.save(book);
 
+                        return new ResponseEntity<>(new AppResponse<>(true, "Request successful"), HttpStatus.OK);
 
+                    }
+                    return new ResponseEntity<>(new AppResponse<>(false, "No copies available. Try again later"), HttpStatus.NOT_FOUND);
 
+                }
+                return new ResponseEntity<>(new AppResponse<>(false, "Max number of books allowed exceeded. Return some and try again."), HttpStatus.OK);
 
-//        Member member = memberRepo.findById(id).orElseThrow(() -> new IllegalArgumentException("SignUp to borrow books."));
-//        if (member.getIsActive()) {
-//            if (member.getLibraryCard().getFine() != 0) {
-//                return new ResponseEntity<>(new AppResponse<>(false, "Please clear your fine"), HttpStatus.OK);
-//            } else {
-//                BorrowHistory newBorrow = new BorrowHistory();
-//                newBorrow.setDueDate(newBorrow.getCreationDate().plusDays(7));
-//                if (member.getLibraryCard().getTier() > 1) {
-//                    for (BookRequest requestList : request.getBooks()) {
-//                        Book books = bookRepo.findByTitle(requestList.getTitle()).orElseThrow(()-> new IllegalStateException("Not found"));
-//                    }
-//                    // check the tier of the member if it is less than 1 and limit the number of books the person can borrow
-//                }
-//            }
-//        } throw new IllegalStateException("Activate your account");
+            }
+        }
+        return new ResponseEntity<>(new AppResponse<>(false, "Activate your account"), HttpStatus.OK);
+    }
 
+    public ResponseEntity<AppResponse<Book>> returnBook(UUID borrowId) {
+        BorrowHistory history = borrowHistoryRepo.findById(borrowId).orElseThrow(() -> new IllegalArgumentException("SignUp to borrow books."));
+        history.setReturnDate(LocalDate.now());
+        Book book = history.getBook();
+        book.setCopies(book.getCopies() + 1);
+        bookRepo.save(book);
+
+        LibraryCard card = history.getLibraryCard();
+        card.setNumberOfBooksCheckedOut(card.getNumberOfBooksCheckedOut() - 1);
+        if (!history.getDueDate().isAfter(history.getReturnDate()) || !history.getDueDate().isEqual(history.getReturnDate()))
+            card.setFine(card.getFine() + 100.00);
+
+        libraryCardRepo.save(card);
+        return new ResponseEntity<>(new AppResponse<>(true, "Returned"), HttpStatus.OK);
     }
 }

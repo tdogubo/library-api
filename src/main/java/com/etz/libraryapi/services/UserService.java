@@ -96,6 +96,7 @@ public class UserService {
     }
 
     public ResponseEntity<AppResponse<UserResponse>> changeUserStatus(UUID id, ChangeUserStatusRequest request) {
+        // write endpoint for email verification
         Optional<Librarian> librarian = librarianRepo.findById(request.getLibrarianId());
         if (librarian.isPresent()) {
             Optional<Member> member = memberRepo.findById(id);
@@ -105,6 +106,7 @@ public class UserService {
                 LibraryCard libraryCard = new LibraryCard();
                 libraryCard.setMember(foundUser);
                 libraryCard.setTier(request.getTier() | libraryCard.getTier());
+                libraryCard.setMaxNumberOfBooks(libraryCard.getTier() == 1 ? 3 : 6);
                 memberRepo.save(foundUser);
                 UserResponse response = mapper.modelMapper().map(foundUser, UserResponse.class);
                 return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.OK);

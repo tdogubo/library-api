@@ -24,7 +24,7 @@ public class LibrarianController {
     private final CatalogService catalogService;
     private final BookService bookService;
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/users/{id}")
     public ResponseEntity<AppResponse<UserResponse>> changeUserStatus(@PathVariable("id") UUID id, @Valid @RequestBody ChangeUserStatusRequest request) {
         return userService.changeUserStatus(id, request);
     }

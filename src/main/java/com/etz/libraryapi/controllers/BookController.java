@@ -30,8 +30,13 @@ public class BookController {
     }
 
     @PostMapping("/{id}/borrow/{memberId}")
-    public ResponseEntity<AppResponse<Book>> borrowBook(@PathVariable("id") Long id, @PathVariable("memberId") UUID memberId) {
+    public ResponseEntity<AppResponse<String>> borrowBook(@PathVariable("id") Long id, @PathVariable("memberId") UUID memberId) {
         return bookService.borrowBook(id, memberId);
+    }
+
+    @PatchMapping("/borrow/{id}")
+    public ResponseEntity<AppResponse<Book>> returnBook(@PathVariable("id") UUID id) {
+        return bookService.returnBook(id);
     }
 
 }

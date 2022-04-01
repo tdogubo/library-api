@@ -7,11 +7,12 @@ import com.etz.libraryapi.domains.requests.LoginUserRequest;
 import com.etz.libraryapi.domains.responses.AppResponse;
 import com.etz.libraryapi.domains.responses.UserResponse;
 import com.etz.libraryapi.models.Librarian;
+import com.etz.libraryapi.models.LibraryCard;
 import com.etz.libraryapi.models.Member;
 import com.etz.libraryapi.repositories.LibrarianRepo;
+import com.etz.libraryapi.repositories.LibraryCardRepo;
 import com.etz.libraryapi.repositories.MemberRepo;
 import com.etz.libraryapi.repositories.UserRepo;
-import com.github.javafaker.App;
 import com.github.javafaker.Faker;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -31,7 +31,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @Slf4j
@@ -48,6 +48,9 @@ public class UserServiceTest {
     private LibrarianRepo librarianRepo;
     @MockBean
     private MemberRepo testMemberRepo;
+
+    @MockBean
+    private LibraryCardRepo libraryCardRepo;
 
     @BeforeEach
     void setUp() {
@@ -137,14 +140,14 @@ public class UserServiceTest {
 
     @Test
     void canEditUser() {
-        EditUserRequest request= new EditUserRequest();
+        EditUserRequest request = new EditUserRequest();
         request.setPassword(faker.internet().password());
         request.setAddress(faker.address().fullAddress());
         request.setPhoneNumber(faker.phoneNumber().phoneNumber());
 
         when(librarianRepo.findById(any(UUID.class))).thenReturn(Optional.of(testLibrarian));
 
-        ResponseEntity<AppResponse<UserResponse>> response = userServiceTest.editUser(UUID.randomUUID(),request);
+        ResponseEntity<AppResponse<UserResponse>> response = userServiceTest.editUser(UUID.randomUUID(), request);
 
         assertEquals(true, Objects.requireNonNull(response.getBody()).getStatus());
         assertEquals(request.getAddress(), response.getBody().getData().getAddress());
@@ -154,14 +157,14 @@ public class UserServiceTest {
 
     @Test
     void canNotEditUser() {
-        EditUserRequest request= new EditUserRequest();
+        EditUserRequest request = new EditUserRequest();
         request.setPassword(faker.internet().password());
         request.setAddress(faker.address().fullAddress());
         request.setPhoneNumber(faker.phoneNumber().phoneNumber());
 
         when(librarianRepo.findById(any(UUID.class))).thenReturn(Optional.empty());
 
-        ResponseEntity<AppResponse<UserResponse>> response = userServiceTest.editUser(UUID.randomUUID(),request);
+        ResponseEntity<AppResponse<UserResponse>> response = userServiceTest.editUser(UUID.randomUUID(), request);
 
         assertEquals(false, Objects.requireNonNull(response.getBody()).getStatus());
         assertEquals("User not found", response.getBody().getMessage());
@@ -170,7 +173,7 @@ public class UserServiceTest {
     }
 
     @Test
-    void canChangeUserStatus(){
+    void canChangeUserStatus() {
         // check method in user service
         ChangeUserStatusRequest request = new ChangeUserStatusRequest();
         request.setActivate(true);
@@ -181,6 +184,10 @@ public class UserServiceTest {
         testMember.setEmail(faker.internet().emailAddress());
         testMember.setId(UUID.randomUUID());
 
+        LibraryCard card = new LibraryCard();
+        card.setMember(testMember);
+
+        when(libraryCardRepo.save(card)).thenReturn(card);
         when(librarianRepo.findById(testLibrarian.getId())).thenReturn(Optional.of(testLibrarian));
         when(testMemberRepo.findById(testMember.getId())).thenReturn(Optional.of(testMember));
 
@@ -192,7 +199,7 @@ public class UserServiceTest {
     }
 
     @Test
-    void changeUserStatusFailByMemberId(){
+    void changeUserStatusFailByMemberId() {
         // check method in user service
         ChangeUserStatusRequest request = new ChangeUserStatusRequest();
         request.setActivate(true);
@@ -216,7 +223,7 @@ public class UserServiceTest {
     }
 
     @Test
-    void changeUserStatusFailByLibrarianId(){
+    void changeUserStatusFailByLibrarianId() {
         // check method in user service
         ChangeUserStatusRequest request = new ChangeUserStatusRequest();
         request.setActivate(true);
@@ -235,7 +242,6 @@ public class UserServiceTest {
         assertEquals(false, Objects.requireNonNull(response.getBody()).getStatus());
         assertEquals(HttpStatus.FORBIDDEN, Objects.requireNonNull(response.getStatusCode()));
         assertEquals("Unauthorized", Objects.requireNonNull(response.getBody().getMessage()));
-
 
 
     }

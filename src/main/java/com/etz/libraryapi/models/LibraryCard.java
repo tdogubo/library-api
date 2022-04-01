@@ -31,7 +31,6 @@ public class LibraryCard {
     private double fine = 0.00;
 
     @OneToOne(mappedBy = "libraryCard", cascade = CascadeType.ALL)
-    @JoinColumn
     private Member member;
 
     @OneToOne

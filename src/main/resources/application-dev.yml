@@ -5,7 +5,7 @@ spring:
   mvc:
     log-request-details: true
   datasource:
-    url: jdbc:h2:mem:file:bankdb
+    url: jdbc:h2:mem:file:librarydb
     driverClassName: org.h2.Driver
   h2:
     console:

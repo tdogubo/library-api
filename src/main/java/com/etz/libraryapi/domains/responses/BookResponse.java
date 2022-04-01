@@ -3,9 +3,7 @@ package com.etz.libraryapi.domains.responses;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 @Data
 @NoArgsConstructor

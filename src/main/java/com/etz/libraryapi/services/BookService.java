@@ -33,7 +33,7 @@ public class BookService {
     private final BorrowHistoryRepo borrowHistoryRepo;
     private final Mapper mapper;
 
-    private String generateCallNumber(String title, String catalog, String publishYear) {
+    protected String generateCallNumber(String title, String catalog, String publishYear) {
         String firstValue = catalog.toUpperCase();
         String secondValue = title.toUpperCase();
         return firstValue + secondValue.substring(0, 3) + publishYear;
@@ -58,42 +58,46 @@ public class BookService {
     public ResponseEntity<AppResponse<BookResponse>> newBook(UUID librarianId, AddBookRequest request) {
         Optional<Librarian> librarian = librarianRepo.findById(librarianId);
         if (librarian.isPresent()) {
-            Catalog catalog = catalogueRepo.findByName(request.getCatalog().toUpperCase()).orElseThrow(() -> new IllegalStateException("Catalog does not exist!!"));
+            Optional<Catalog> catalog = catalogueRepo.findByName(request.getCatalog().toUpperCase());
+            if (catalog.isPresent()) {
+                Book newBook = new Book();
+                newBook.setIsbn(request.getIsbn());
+                newBook.setTitle(request.getTitle());
+                newBook.setPublisher(request.getPublisher());
+                newBook.setGenre(request.getGenre());
+                newBook.setPublishYear(request.getPublishYear());
+                newBook.setDescription(request.getDescription());
+                newBook.setLanguage(request.getLanguage());
+                newBook.setPages(request.getPages());
+                newBook.setCatalog(catalog.get());
+                newBook.setCopies(request.getCopies());
+                newBook.setCallNumber(generateCallNumber(request.getTitle(), request.getCatalog(), request.getPublishYear()));
+                for (String author : request.getAuthor()) {
+                    String authorFirstName = author.split(" ")[0];
+                    String authorLastName = author.split(" ")[1];
 
-            Book newBook = new Book();
-            newBook.setIsbn(request.getIsbn());
-            newBook.setTitle(request.getTitle());
-            newBook.setPublisher(request.getPublisher());
-            newBook.setGenre(request.getGenre());
-            newBook.setPublishYear(request.getPublishYear()); // extract year only from date
-            newBook.setDescription(request.getDescription());
-            newBook.setLanguage(request.getLanguage());
-            newBook.setPages(request.getPages());
-            newBook.setCatalog(catalog);
-            newBook.setCallNumber(generateCallNumber(request.getTitle(), request.getCatalog(), request.getPublishYear()));
-            for (String author : request.getAuthor()) {
-                String authorFirstName = author.split(" ")[0];
-                String authorLastName = author.split(" ")[1];
+                    Optional<Author> isAuthorInDatabase = authorRepo.findByFirstNameAndLastName(authorFirstName, authorLastName);
+                    if (isAuthorInDatabase.isPresent()) {
+                        Author savedAuthor = isAuthorInDatabase.get();
+                        log.info("AUTHOR IN DATABASE :: {}", savedAuthor);
+                        newBook.addAuthor(savedAuthor);
+                    } else {
+                        Author saveAuthor = new Author();
+                        saveAuthor.setFirstName(authorFirstName);
+                        saveAuthor.setLastName(authorLastName);
+                        authorRepo.save(saveAuthor);
+                        newBook.addAuthor(saveAuthor);
+                    }
 
-                Optional<Author> isAuthorInDatabase = authorRepo.findByFirstNameAndLastName(authorFirstName, authorLastName);
-                if (isAuthorInDatabase.isPresent()) {
-                    Author savedAuthor = isAuthorInDatabase.get();
-                    log.info("AUTHOR IN DATABASE :: {}", savedAuthor);
-                    newBook.addAuthor(savedAuthor);
-                } else {
-                    Author saveAuthor = new Author();
-                    saveAuthor.setFirstName(authorFirstName);
-                    saveAuthor.setLastName(authorLastName);
-                    authorRepo.save(saveAuthor);
-                    newBook.addAuthor(saveAuthor);
                 }
-
+                bookRepo.save(newBook);
+                BookResponse response = mapper.modelMapper().map(newBook, BookResponse.class);
+                response.setCatalog(newBook.getCatalog().getName());
+                response.setAuthorList(newBook.getBookAuthors());
+                return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.CREATED);
+            } else {
+                return new ResponseEntity<>(new AppResponse<>(false, "Catalog does not exist!!"), HttpStatus.NOT_FOUND);
             }
-            bookRepo.save(newBook);
-            BookResponse response = mapper.modelMapper().map(newBook, BookResponse.class);
-            response.setCatalog(newBook.getCatalog().getName());
-            response.setAuthorList(newBook.getBookAuthors());
-            return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.CREATED);
         }
         return new ResponseEntity<>(new AppResponse<>(false, "Unauthorized"), HttpStatus.FORBIDDEN);
 
@@ -172,10 +176,10 @@ public class BookService {
         return new ResponseEntity<>(new AppResponse<>(false, "Unauthorized"), HttpStatus.FORBIDDEN);
     }
 
-    public ResponseEntity<AppResponse<Book>> borrowBook(Long id, UUID memberId) {
+    public ResponseEntity<AppResponse<String>> borrowBook(Long id, UUID memberId) {
         Member member = memberRepo.findById(memberId).orElseThrow(() -> new IllegalArgumentException("SignUp to borrow books."));
         if (member.getIsActive()) {
-            LibraryCard card = member.getLibraryCard();
+            LibraryCard card = libraryCardRepo.findByMemberId(memberId).orElseThrow(()-> new IllegalArgumentException("Member not associated with card"));
             if (card.getFine() != 0) {
                 return new ResponseEntity<>(new AppResponse<>(false, "Please clear your fine"), HttpStatus.OK);
             } else {
@@ -190,6 +194,8 @@ public class BookService {
                         book.setCopies(book.getCopies() - 1);
 
                         borrowHistoryRepo.save(newBorrow);
+
+                        card.setHistory(newBorrow);
                         libraryCardRepo.save(card);
                         bookRepo.save(book);
 
@@ -203,7 +209,7 @@ public class BookService {
 
             }
         }
-        return new ResponseEntity<>(new AppResponse<>(false, "Activate your account"), HttpStatus.OK);
+        return new ResponseEntity<>(new AppResponse<>(false, "Activate your account"), HttpStatus.UNAUTHORIZED);
     }
 
     public ResponseEntity<AppResponse<Book>> returnBook(UUID borrowId) {

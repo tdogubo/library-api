@@ -7,7 +7,6 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -18,8 +17,12 @@ import java.util.Set;
 @NoArgsConstructor
 public class Book {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column
+    private String callNumber;
+
     @Column
     private String isbn;
     @Column
@@ -42,8 +45,7 @@ public class Book {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "catalogue_id")
     private Catalog catalog;
-    @Column
-    private String callNumber;
+
 
     @OneToOne
     @JoinColumn(name = "history_id", referencedColumnName = "id")

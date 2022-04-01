@@ -13,6 +13,7 @@ import com.etz.libraryapi.models.LibraryCard;
 import com.etz.libraryapi.models.Member;
 import com.etz.libraryapi.models.User;
 import com.etz.libraryapi.repositories.LibrarianRepo;
+import com.etz.libraryapi.repositories.LibraryCardRepo;
 import com.etz.libraryapi.repositories.MemberRepo;
 import com.etz.libraryapi.repositories.UserRepo;
 import lombok.RequiredArgsConstructor;
@@ -28,11 +29,12 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 public class UserService {
-    private final UserRepo userRepo;
-    private final LibrarianRepo librarianRepo;
-    private final MemberRepo memberRepo;
     private final Mapper mapper;
     private final Encoder encoder;
+    private final UserRepo userRepo;
+    private final MemberRepo memberRepo;
+    private final LibrarianRepo librarianRepo;
+    private final LibraryCardRepo libraryCardRepo;
 
 
     public ResponseEntity<AppResponse<UserResponse>> createUser(CreateUserRequest request) {
@@ -107,6 +109,9 @@ public class UserService {
                 libraryCard.setMember(foundUser);
                 libraryCard.setTier(request.getTier() | libraryCard.getTier());
                 libraryCard.setMaxNumberOfBooks(libraryCard.getTier() == 1 ? 3 : 6);
+                libraryCardRepo.save(libraryCard);
+                foundUser.setLibraryCard(libraryCard);
+                foundUser.setLibrarian(librarian.get());
                 memberRepo.save(foundUser);
                 UserResponse response = mapper.modelMapper().map(foundUser, UserResponse.class);
                 return new ResponseEntity<>(new AppResponse<>(true, response), HttpStatus.OK);

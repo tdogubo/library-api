@@ -179,7 +179,7 @@ public class BookService {
     public ResponseEntity<AppResponse<String>> borrowBook(Long id, UUID memberId) {
         Member member = memberRepo.findById(memberId).orElseThrow(() -> new IllegalArgumentException("SignUp to borrow books."));
         if (member.getIsActive()) {
-            LibraryCard card = libraryCardRepo.findByMemberId(memberId).orElseThrow(()-> new IllegalArgumentException("Member not associated with card"));
+            LibraryCard card = libraryCardRepo.findByMemberId(memberId).orElseThrow(() -> new IllegalArgumentException("Member not associated with card"));
             if (card.getFine() != 0) {
                 return new ResponseEntity<>(new AppResponse<>(false, "Please clear your fine"), HttpStatus.OK);
             } else {
@@ -213,18 +213,22 @@ public class BookService {
     }
 
     public ResponseEntity<AppResponse<Book>> returnBook(UUID borrowId) {
-        BorrowHistory history = borrowHistoryRepo.findById(borrowId).orElseThrow(() -> new IllegalArgumentException("SignUp to borrow books."));
-        history.setReturnDate(LocalDate.now());
-        Book book = history.getBook();
-        book.setCopies(book.getCopies() + 1);
-        bookRepo.save(book);
+        Optional<BorrowHistory> isHistory = borrowHistoryRepo.findById(borrowId);
+        if (isHistory.isPresent()) {
+            BorrowHistory history = isHistory.get();
+            history.setReturnDate(LocalDate.now());
+            Book book = history.getBook();
+            book.setCopies(book.getCopies() + 1);
+            bookRepo.save(book);
 
-        LibraryCard card = history.getLibraryCard();
-        card.setNumberOfBooksCheckedOut(card.getNumberOfBooksCheckedOut() - 1);
-        if (!history.getDueDate().isAfter(history.getReturnDate()) || !history.getDueDate().isEqual(history.getReturnDate()))
-            card.setFine(card.getFine() + 100.00);
+            LibraryCard card = history.getLibraryCard();
+            card.setNumberOfBooksCheckedOut(card.getNumberOfBooksCheckedOut() - 1);
+            if (!history.getDueDate().isAfter(history.getReturnDate()) || !history.getDueDate().isEqual(history.getReturnDate()))
+                card.setFine(card.getFine() + 100.00);
 
-        libraryCardRepo.save(card);
-        return new ResponseEntity<>(new AppResponse<>(true, "Returned"), HttpStatus.OK);
+            libraryCardRepo.save(card);
+            return new ResponseEntity<>(new AppResponse<>(true, "Returned"), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new AppResponse<>(true, "SignUp to borrow books"), HttpStatus.UNAUTHORIZED);
     }
 }

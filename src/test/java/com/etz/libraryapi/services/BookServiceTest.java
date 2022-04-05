@@ -392,4 +392,31 @@ public class BookServiceTest {
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
     }
 
+    @Test
+    void canReturnBook() {
+        //given
+        BorrowHistory history = new BorrowHistory();
+        history.setId(UUID.randomUUID());
+        history.setBook(testBook);
+        history.setLibraryCard(testCard);
+        history.setCreationDate(LocalDate.now());
+        history.setDueDate(history.getCreationDate().plusDays(9));
+
+        when(borrowHistoryRepo.findById(history.getId())).thenReturn(Optional.of(history));
+
+        ResponseEntity<AppResponse<Book>> response = testService.returnBook(history.getId());
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Returned", Objects.requireNonNull(response.getBody()).getMessage());
+    }
+
+    @Test
+    void canNotReturnBook() {
+        when(borrowHistoryRepo.findById(UUID.randomUUID())).thenReturn(Optional.empty());
+
+        ResponseEntity<AppResponse<Book>> response = testService.returnBook(UUID.randomUUID());
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertEquals("SignUp to borrow books", Objects.requireNonNull(response.getBody()).getMessage());
+    }
 }

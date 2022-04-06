@@ -58,7 +58,7 @@ public class UserService {
     public ResponseEntity<AppResponse<UserResponse>> loginUser(LoginUserRequest request) {
         Optional<Librarian> librarian = librarianRepo.findByEmail(request.getEmail());
         Optional<Member> member = memberRepo.findByEmail(request.getEmail());
-        if (librarian.isPresent()) {//&& encoder.passwordEncoder().matches(request.getPassword(), librarian.get().getPassword())) {
+        if (librarian.isPresent() && encoder.passwordEncoder().matches(request.getPassword(), librarian.get().getPassword())) {
             Librarian foundUser = librarian.get();
 
             UserResponse response = mapper.modelMapper().map(foundUser, UserResponse.class);

@@ -42,7 +42,7 @@ public class CatalogService {
         return new ResponseEntity<>(new AppResponse<>(true, "Catalog list is empty"), HttpStatus.NOT_FOUND);
     }
 
-    public ResponseEntity<AppResponse<String>> createNewCatalog(UUID librarianId,CreateNewCatalogRequest request) {
+    public ResponseEntity<AppResponse<String>> createNewCatalog(UUID librarianId, CreateNewCatalogRequest request) {
         Optional<Librarian> librarian = librarianRepo.findById(librarianId);
         if (librarian.isPresent()) {
             try {
@@ -62,7 +62,7 @@ public class CatalogService {
 
     }
 
-    public ResponseEntity<AppResponse<String>> editCatalog(UUID librarianId,Long catalogId, CatalogRequest request) {
+    public ResponseEntity<AppResponse<String>> editCatalog(UUID librarianId, Long catalogId, CatalogRequest request) {
         Optional<Librarian> librarian = librarianRepo.findById(librarianId);
         if (librarian.isPresent()) {
             Catalog catalog = catalogRepo.findById(catalogId).orElseThrow(() -> new IllegalArgumentException("Catalog does not exist"));

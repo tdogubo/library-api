@@ -223,8 +223,9 @@ public class BookService {
 
             LibraryCard card = history.getLibraryCard();
             card.setNumberOfBooksCheckedOut(card.getNumberOfBooksCheckedOut() - 1);
-            if (!history.getDueDate().isAfter(history.getReturnDate()) || !history.getDueDate().isEqual(history.getReturnDate()))
+            if (!history.getDueDate().isAfter(history.getReturnDate()) || !history.getDueDate().isEqual(history.getReturnDate())) {
                 card.setFine(card.getFine() + 100.00);
+            }
 
             libraryCardRepo.save(card);
             return new ResponseEntity<>(new AppResponse<>(true, "Returned"), HttpStatus.OK);

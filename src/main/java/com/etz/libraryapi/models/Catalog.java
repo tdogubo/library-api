@@ -27,8 +27,8 @@ public class Catalog {
 
     private ArrayList<String> bookList = new ArrayList<>();
 
-    public ArrayList<String> getCatalogBooks(){
-        for (Book book: books) {
+    public ArrayList<String> getCatalogBooks() {
+        for (Book book : books) {
             String title = book.getTitle();
             bookList.add(title);
         }

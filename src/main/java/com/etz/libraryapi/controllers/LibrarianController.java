@@ -45,7 +45,9 @@ public class LibrarianController {
     }
 
     @PatchMapping("/{librarianId}/catalogs/{catalogId}")
-    public ResponseEntity<AppResponse<String>> editCatalog(@PathVariable("librarianId") UUID librarianId, @PathVariable("catalogId") Long catalogId, @Valid @RequestBody CatalogRequest newCatalogName) {
+    public ResponseEntity<AppResponse<String>> editCatalog(@PathVariable("librarianId") UUID librarianId,
+                                                           @PathVariable("catalogId") Long catalogId,
+                                                           @Valid @RequestBody CatalogRequest newCatalogName) {
         return catalogService.editCatalog(librarianId, catalogId, newCatalogName);
     }
 
@@ -66,6 +68,6 @@ public class LibrarianController {
 
     @DeleteMapping("/{librarianId}/books/{bookId}")
     public ResponseEntity<AppResponse<String>> deleteBook(@PathVariable("librarianId") UUID librarianId, @PathVariable("bookId") Long bookId) {
-        return bookService.deleteBook(librarianId,bookId);
+        return bookService.deleteBook(librarianId, bookId);
     }
 }
